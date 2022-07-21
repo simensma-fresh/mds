@@ -1,3 +1,5 @@
+from tests.now_application_factories import *
+from tests.now_submission_factories import *
 import uuid
 from datetime import datetime
 from os import path
@@ -56,6 +58,7 @@ from app.api.projects.information_requirements_table.models.information_requirem
 from app.api.projects.information_requirements_table.models.information_requirements_table_status_code import InformationRequirementsTableStatusCode
 from app.api.EMLI_contacts.models.EMLI_contact_type import EMLIContactType
 from app.api.EMLI_contacts.models.EMLI_contact import EMLIContact
+from app.api.activity.models.activity_notification import ActivityNotification
 
 GUID = factory.LazyFunction(uuid.uuid4)
 TODAY = factory.LazyFunction(datetime.utcnow)
@@ -70,7 +73,7 @@ def create_mine_and_permit(mine_kwargs={},
     mine = MineFactory(mine_permit_amendments=0, **mine_kwargs)
     for x in range(num_permits):
         permit = PermitFactory(_context_mine=mine, **permit_kwargs)
-        permit._all_mines.append(mine)           ##create mine_permit_xref
+        permit._all_mines.append(mine)  # create mine_permit_xref
         PermitAmendmentFactory.create_batch(size=num_permit_amendments, mine=mine, permit=permit)
         permit._context_mine = mine              # possibly redundant
     return mine, permit
@@ -97,10 +100,6 @@ class BaseFactory(factory.alchemy.SQLAlchemyModelFactory, FactoryRegistry):
         abstract = True
         sqlalchemy_session = db.session
         sqlalchemy_session_persistence = 'flush'
-
-
-from tests.now_submission_factories import *
-from tests.now_application_factories import *
 
 
 class MineDocumentFactory(BaseFactory):
@@ -435,7 +434,7 @@ class MineReportFactory(BaseFactory):
     mine_guid = factory.SelfAttribute('mine.mine_guid')
     mine_report_definition_id = factory.LazyFunction(
         RandomMineReportDefinition
-    )                                                                        #None if not factory.SelfAttribute('set_permit_condition_category_code') else factory.LazyFunction(RandomMineReportDefinition)
+    )  # None if not factory.SelfAttribute('set_permit_condition_category_code') else factory.LazyFunction(RandomMineReportDefinition)
     received_date = factory.Faker('date_between', start_date='-15d', end_date='+15d')
     due_date = factory.Faker('future_datetime', end_date='+30d')
     submission_year = factory.fuzzy.FuzzyInteger(datetime.utcnow().year - 2,
@@ -1260,3 +1259,32 @@ class InformationRequirementsTableFactory(BaseFactory):
     project_guid = factory.SelfAttribute('project.project_guid')
     irt_guid = GUID
     status_code = 'REC'
+
+
+class ActivityFactory(BaseFactory):
+
+    class Meta:
+        model = ActivityNotification
+
+    class Params:
+        mine = factory.SubFactory('tests.factories.MineFactory', minimal=True)
+        entity = 'Mine'
+        entity_guid = factory.LazyFunction(uuid.uuid4)
+        user = factory.Faker('user_name')
+
+    notification_guid = GUID
+    activity_type = 'mine'
+    notification_document = {
+        "message": "Mine has been upddated ",
+        "metadata": {
+            "mine": {
+                "mine_no": factory.SelfAttribute('mine.mine_no'),
+                "mine_guid": factory.SelfAttribute('mine.mine_guid'),
+                "mine_name": factory.SelfAttribute('mine.mine_name')
+            },
+            "entity": factory.SelfAttribute('entity'),
+            "entity_guid": factory.SelfAttribute('entity_guid')
+        }
+    }
+    notification_read = False
+    notification_recipient = factory.SelfAttribute('user')
