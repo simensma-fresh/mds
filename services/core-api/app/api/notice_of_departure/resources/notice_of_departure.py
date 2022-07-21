@@ -1,6 +1,7 @@
 from flask_restplus import Resource, reqparse, inputs
 from app.extensions import api
 from app.api.utils.resources_mixins import UserMixin
+from app.api.activity.models.activity_notification import ActivityNotification
 from app.api.utils.access_decorators import (requires_any_of, EDIT_DO, MINESPACE_PROPONENT)
 from app.api.notice_of_departure.models.notice_of_departure import NoticeOfDeparture, NodStatus, NodType
 from app.api.notice_of_departure.dto import NOD_MODEL, UPDATE_NOD_MODEL
@@ -64,12 +65,30 @@ class NoticeOfDepartureResource(Resource, UserMixin):
 
         update_nod = NoticeOfDeparture.find_one(nod_guid)
 
+        old_status = update_nod.nod_status
+
         update_nod.update(
             nod_title=data.get('nod_title'),
             nod_description=data.get('nod_description'),
             nod_status=data.get('nod_status'),
             nod_type=data.get('nod_type'),
             nod_contacts=data.get('nod_contacts'))
+
+        if (update_nod.nod_status is not old_status):
+            message = {
+                'message': "Notice Of Departure %s changed status from %s to %s" % (update_nod.nod_no, old_status, update_nod.nod_status),
+                'metadata': {
+                    'mine': {
+                        'mine_guid': str(update_nod.mine.mine_guid),
+                        'mine_no': update_nod.mine.mine_no,
+                        'mine_name': update_nod.mine.mine_name
+                    },
+                    'entity': 'NoticeOfDeparture',
+                    'entity_guid': str(update_nod.nod_guid)
+                }
+            }
+
+            ActivityNotification.create_many(update_nod.mine.mine_guid, message)
 
         return update_nod
 
