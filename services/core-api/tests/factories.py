@@ -1,5 +1,3 @@
-from tests.now_application_factories import *
-from tests.now_submission_factories import *
 import uuid
 from datetime import datetime
 from os import path
@@ -101,6 +99,9 @@ class BaseFactory(factory.alchemy.SQLAlchemyModelFactory, FactoryRegistry):
         sqlalchemy_session = db.session
         sqlalchemy_session_persistence = 'flush'
 
+
+from tests.now_submission_factories import *
+from tests.now_application_factories import *
 
 class MineDocumentFactory(BaseFactory):
 
