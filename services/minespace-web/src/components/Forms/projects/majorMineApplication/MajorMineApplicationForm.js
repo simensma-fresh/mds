@@ -82,9 +82,9 @@ export class MajorMineApplicationForm extends Component {
     return this.props.change(documentTypeFieldForm, documentsForm);
   };
 
-  filterDocs = (docs, applicationDocumentTypecode) =>
+  filterDocs = (docs, applicationDocumentTypeCode) =>
     (docs || []).filter(
-      (doc) => doc?.major_mine_application_document_type_code === applicationDocumentTypecode
+      (doc) => doc?.major_mine_application_document_type_code === applicationDocumentTypeCode
     );
 
   render() {
