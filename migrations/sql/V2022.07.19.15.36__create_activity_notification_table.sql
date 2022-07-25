@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS activity.activity_notification (
 );
 
 CREATE INDEX IF NOT EXISTS idx_mine_guid ON activity.activity_notification ((notification_document->'metadata'->'mine'->'mine_guid')); 
-CREATE INDEX IF NOT EXISTS idx_mine_recipient ON activity.activity_notification (notification_recipient);
+CREATE INDEX IF NOT EXISTS idx_notification_recipient ON activity.activity_notification (notification_recipient);
 
 ALTER TABLE activity.activity_notification
     OWNER TO mds;
