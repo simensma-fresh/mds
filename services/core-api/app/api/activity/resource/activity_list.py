@@ -82,7 +82,7 @@ class ActivityListResource(Resource, UserMixin):
 
         mine = Mine.find_by_mine_guid(mine_guid)
 
-        message = {
+        document = {
             'message': message,
             'metadata': {
                 'mine': {
@@ -94,4 +94,4 @@ class ActivityListResource(Resource, UserMixin):
                 'entity_guid': str(entity_guid)
             }
         }
-        ActivityNotification.create_many(mine_guid, message)
+        ActivityNotification.create_many(mine_guid, document)

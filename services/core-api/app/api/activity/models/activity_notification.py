@@ -1,9 +1,8 @@
 from datetime import datetime
-from email.policy import default
 import json
 from enum import Enum
 from cerberus import Validator
-from app.api.utils.models_mixins import SoftDeleteMixin, AuditMixin, Base
+from app.api.utils.models_mixins import AuditMixin, Base
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.schema import FetchedValue
 from app.extensions import db
@@ -12,8 +11,6 @@ from app.api.utils.include.user_info import User
 from app.api.mines.subscription.models.subscription import Subscription
 from app.api.users.minespace.models.minespace_user import MinespaceUser
 from app.api.users.minespace.models.minespace_user_mine import MinespaceUserMine
-
-import inspect
 
 
 def validate_document(document):
@@ -80,7 +77,7 @@ class ActivityNotification(AuditMixin, Base):
         return new_activity.save(commit)
 
     @classmethod
-    def create_many(cls, mine_guid, message):
+    def create_many(cls, mine_guid, document):
         MinespaceUserMineTable = table(MinespaceUserMine.__tablename__, column('mine_guid'), column('user_id'))
         MinespaceUserTable = table(MinespaceUser.__tablename__, column('email_or_username'), column('user_id'))
         SubscriptionTable = table(Subscription.__tablename__, column('mine_guid'), column('user_name'))
@@ -96,7 +93,7 @@ class ActivityNotification(AuditMixin, Base):
         notifications = []
 
         for user in users:
-            validated_notification_document = validate_document(message)
+            validated_notification_document = validate_document(document)
 
             notification = cls(notification_recipient=user, notification_document=validated_notification_document)
             notifications.append(notification)
