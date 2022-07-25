@@ -1,4 +1,5 @@
 import uuid
+import json
 from datetime import datetime
 from os import path
 from sqlalchemy.orm.scoping import scoped_session
@@ -99,10 +100,8 @@ class BaseFactory(factory.alchemy.SQLAlchemyModelFactory, FactoryRegistry):
         sqlalchemy_session = db.session
         sqlalchemy_session_persistence = 'flush'
 
-
 from tests.now_submission_factories import *
 from tests.now_application_factories import *
-
 class MineDocumentFactory(BaseFactory):
 
     class Meta:
@@ -1269,23 +1268,23 @@ class ActivityFactory(BaseFactory):
 
     class Params:
         mine = factory.SubFactory('tests.factories.MineFactory', minimal=True)
-        entity = 'Mine'
+        entity = 'mine'
         entity_guid = factory.LazyFunction(uuid.uuid4)
         user = factory.Faker('user_name')
 
     notification_guid = GUID
-    activity_type = 'mine'
-    notification_document = {
+    activity_type = factory.SelfAttribute('entity')
+    notification_document = factory.LazyAttribute(lambda o: {
         "message": "Mine has been upddated ",
         "metadata": {
             "mine": {
-                "mine_no": factory.SelfAttribute('mine.mine_no'),
-                "mine_guid": factory.SelfAttribute('mine.mine_guid'),
-                "mine_name": factory.SelfAttribute('mine.mine_name')
+                "mine_no": o.mine.mine_no,
+                "mine_guid": str(o.mine.mine_guid),
+                "mine_name": o.mine.mine_name
             },
-            "entity": factory.SelfAttribute('entity'),
-            "entity_guid": factory.SelfAttribute('entity_guid')
+            "entity": o.entity,
+            "entity_guid": str(o.entity_guid)
         }
-    }
+    })
     notification_read = False
     notification_recipient = factory.SelfAttribute('user')

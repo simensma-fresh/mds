@@ -35,14 +35,12 @@ class ActivityListResource(Resource, UserMixin):
             'per_page', type=int, help='records per page', location='args', store_missing=False)
         args = parser.parse_args()
 
-        acivities = []
-
         user = args.get('user')
         page = args.get('page')
         per_page = args.get('per_page') if args.get('per_page') else 10  # default per page is 10
 
-        acivities = ActivityNotification.find_all_by_recipient(user, page, per_page)
-        return acivities
+        activities = ActivityNotification.find_all_by_recipient(user, page, per_page)
+        return activities
 
     @requires_any_of([EDIT_DO, MINESPACE_PROPONENT])
     @api.expect(CREATE_ACTIVITY_MODEL)

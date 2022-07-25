@@ -1,5 +1,4 @@
 import json
-import uuid
 
 from tests.factories import ActivityFactory, MineFactory
 
@@ -12,8 +11,8 @@ class TestActivityListResource:
         username = 'test@bceid'
         batch_size = 3
         mine = MineFactory(minimal=True)
+        ActivityFactory.create_batch(size=batch_size, mine=mine)
         ActivityFactory.create_batch(size=batch_size, mine=mine, user=username)
-        ActivityFactory.create_batch(size=batch_size, mine=mine, user='another_user')
 
         get_resp = test_client.get(
             f'/activities?user={username}',
@@ -23,4 +22,6 @@ class TestActivityListResource:
         assert get_resp.status_code == 200
         assert len(get_data['records']) == batch_size
         assert get_data['total'] == batch_size
-        assert get_data['records'][0].notification_recipient == username
+        assert get_data['records'][0]['notification_recipient'] == username
+        document = get_data['records'][0]['notification_document']
+        assert document['metadata']['mine']['mine_guid'] == str(mine.mine_guid)
